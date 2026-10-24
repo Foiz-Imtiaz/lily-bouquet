@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ASCII Lily Bouquet</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;height:100%;background:radial-gradient(ellipse at 50% 45%,#2a0f2e 0%,#0a0410 55%,#000 100%);color:#f3e6d0;font-family:Georgia,'Times New Roman',serif}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+h3{font-weight:400;font-style:italic;font-size:clamp(1.2rem,5.5vw,2rem);margin:0 12px 6px;text-align:center;background:linear-gradient(90deg,#ffd9a0,#ff8fc8,#ffd9a0);-webkit-background-clip:text;background-clip:text;color:transparent}
+canvas{max-width:100%;max-height:76vh;width:auto;height:auto;filter:drop-shadow(0 0 14px rgba(255,110,180,.35));touch-action:none}
+p{font-size:.78rem;opacity:.55;margin:6px 0 0;letter-spacing:.08em;text-align:center}
+</style></head><body>
+<h3>Some Coded Lilies only for You. Labonno <3 <br>And I love You My Baby Girl.
+</h3>
+<canvas id="c"></canvas>
+<p>Tap to Replay · Drag to blow the wind <br> (Cringe bolis na please)</p>
+<script>
+const W=130,H=170,K=1.3,CW=5,CH=6;
+const off=document.createElement('canvas');off.width=W;off.height=H;
+const o=off.getContext('2d',{willReadFrequently:true});
+const cv=document.getElementById('c');cv.width=W*CW;cv.height=H*CH;
+const c=cv.getContext('2d');c.font='6px monospace';c.textBaseline='top';
+const chars='.,:;-~=+*xo#%&@';
+const clamp=v=>Math.max(0,Math.min(1,v)),ease=t=>1-Math.pow(1-t,3);
+const base={x:50,y:128};
+const F=[
+ {x:50,y:30,r:21,c:[230,25,60],rot:.2},
+ {x:27,y:52,r:19,c:[225,60,205],rot:.5},
+ {x:73,y:50,r:19,c:[240,115,205],rot:.1},
+ {x:48,y:64,r:22,c:[250,240,220],rot:.9},
+ {x:77,y:80,r:15,c:[220,25,50],rot:.4},
+ {x:23,y:80,r:16,c:[245,210,35],rot:.7},
+ {x:62,y:13,r:14,c:[255,230,70],rot:.3},
+ {x:34,y:21,r:13,c:[255,225,230],rot:.6},
+ {x:60,y:88,r:17,c:[255,185,120],rot:.2},
+ {x:38,y:90,r:14,c:[190,90,255],rot:.8}
+];
+F.forEach(f=>{f.cx=(base.x+f.x)/2+(f.x-base.x)*.25;f.cy=(base.y+f.y)/2+8});
+const stars=[...Array(45)].map(()=>({x:Math.random()*100,y:Math.random()*125,p:Math.random()*6}));
+const fall=[...Array(22)].map(()=>({x:Math.random()*100,y:Math.random()*130,s:.12+Math.random()*.2,p:Math.random()*6,c:[[255,150,200],[255,235,240],[255,210,120]][Math.random()*3|0]}));
+let T=0,wind=0,windT=0;
+const sway=(i,u)=>(Math.sin(T*1.3+i*.8)*2.2+wind*7)*u*u;
+const pt=(f,t,i)=>{const u=1-t;return[u*u*base.x+2*u*t*f.cx+t*t*f.x+sway(i,t),u*u*base.y+2*u*t*f.cy+t*t*f.y]};
+function petal(L,w,col){
+ const g=o.createLinearGradient(0,0,L,0);
+ g.addColorStop(0,'rgb(190,235,80)');
+ g.addColorStop(.25,`rgb(${col[0]},${col[1]},${col[2]})`);
+ g.addColorStop(.8,`rgb(${col[0]*.85|0},${col[1]*.85|0},${col[2]*.85|0})`);
+ g.addColorStop(1,'rgb(255,245,235)');
+ o.fillStyle=g;o.beginPath();o.moveTo(0,0);
+ o.bezierCurveTo(L*.35,-w*1.3,L*.8,-w*.8,L,0);
+ o.bezierCurveTo(L*.8,w*.8,L*.35,w*1.3,0,0);o.fill();
+ o.strokeStyle='rgba(70,10,40,.55)';o.lineWidth=.6;
+ o.beginPath();o.moveTo(1,0);o.lineTo(L*.88,0);o.stroke();
+ o.fillStyle='rgba(90,10,40,.75)';
+ for(let j=0;j<5;j++){const x=L*(.22+.11*j);o.fillRect(x,-w*.35*(j%2?1:-1)-.5,1,1);o.fillRect(x+2,w*.3*(j%2?1:-1),1,1)}
+}
+function frame(t){
+ o.setTransform(1,0,0,1,0,0);o.fillStyle='#000';o.fillRect(0,0,W,H);
+ o.setTransform(K,0,0,K,0,0);
+ const rg=o.createRadialGradient(50,60,5,50,60,70);
+ rg.addColorStop(0,'rgba(255,90,170,.16)');rg.addColorStop(1,'rgba(0,0,0,0)');
+ o.fillStyle=rg;o.fillRect(0,0,100,130);
+ stars.forEach(s=>{const a=.35+.65*Math.abs(Math.sin(T*1.5+s.p));o.fillStyle=`rgba(255,240,220,${a})`;o.fillRect(s.x,s.y,1.1,1.1)});
+ F.forEach((f,i)=>{
+  const d=i*.035,g=ease(clamp((t-.04-d)/.4));
+  o.strokeStyle='rgb(60,175,55)';o.lineWidth=1.7;o.beginPath();
+  for(let k=0;k<=24;k++){const[x,y]=pt(f,g*k/24,i);k?o.lineTo(x,y):o.moveTo(x,y)}o.stroke();
+  if(g>.5){const s=clamp((g-.5)*2);
+   [.3,.5].forEach((q,j)=>{const[lx,ly]=pt(f,q*Math.min(1,g*1.2),i);
+    o.save();o.translate(lx,ly);o.rotate((f.x<50?-1:1)*(.8+j*.4));o.fillStyle=j?'rgb(120,215,70)':'rgb(80,185,60)';
+    o.beginPath();o.ellipse(8*s,0,9*s,2.3,0,0,7);o.fill();o.restore()})}
+ });
+ const rb=clamp((t-.3)/.2);
+ if(rb>0){o.save();o.translate(50+sway(0,.1),114);o.scale(rb,rb);o.fillStyle='rgb(255,95,160)';
+  [-1,1].forEach(s=>{o.beginPath();o.ellipse(s*7,0,7,3.6,s*.35,0,7);o.fill();
+   o.beginPath();o.moveTo(s*2,2);o.lineTo(s*8,14);o.lineTo(s*3,12);o.fill()});
+  o.fillStyle='rgb(255,170,205)';o.beginPath();o.arc(0,0,3,0,7);o.fill();o.restore()}
+ F.forEach((f,i)=>{
+  const d=i*.035,g=ease(clamp((t-.04-d)/.4)),b=ease(clamp((t-.4-d*1.5)/.45));
+  if(g<.9)return;
+  const[fx,fy]=pt(f,1,i),br=1+.04*Math.sin(T*1.6+i)*b;
+  o.save();o.translate(fx,fy);o.scale(br,.85*br);o.rotate(f.rot+Math.sin(T*1.1+i)*.06+wind*.3);
+  const L=f.r*(.25+.75*b),w=f.r*.3*(.4+.6*b);
+  for(let k=0;k<6;k++){o.save();o.rotate(k*Math.PI/3+(k%2?.17:0));petal(L*(k%2?.86:1),w,f.c);o.restore()}
+  if(b>.5){o.strokeStyle='rgb(245,205,90)';o.fillStyle='rgb(130,60,15)';o.lineWidth=.6;
+   for(let k=0;k<6;k++){const a=k*1.05+.3,l=L*.5*b;o.beginPath();o.moveTo(0,0);
+    o.lineTo(Math.cos(a)*l,Math.sin(a)*l);o.stroke();o.fillRect(Math.cos(a)*l-.9,Math.sin(a)*l-.9,1.8,1.8)}}
+  o.restore();
+ });
+ if(t>.8)fall.forEach(p=>{p.y+=p.s;p.x+=Math.sin(T*1.2+p.p)*.18+wind*.6;if(p.y>130){p.y=-3;p.x=Math.random()*100}
+  o.save();o.translate(p.x,p.y);o.rotate(T+p.p);o.fillStyle=`rgb(${p.c})`;o.beginPath();o.ellipse(0,0,1.8,.9,0,0,7);o.fill();o.restore()});
+ const px=o.getImageData(0,0,W,H).data;
+ c.fillStyle='rgba(0,0,0,0)';c.clearRect(0,0,cv.width,cv.height);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const i=(y*W+x)*4,r=px[i],g=px[i+1],b=px[i+2],l=(r*.3+g*.59+b*.11)/255;
+  if(l<.06)continue;
+  c.fillStyle=`rgb(${Math.min(255,r*1.25)|0},${Math.min(255,g*1.25)|0},${Math.min(255,b*1.25)|0})`;
+  c.fillText(chars[Math.min(chars.length-1,Math.floor(Math.pow(l,.65)*chars.length))],x*CW,y*CH);
+ }
+}
+let t0=performance.now();
+function loop(n){T=n/1000;wind+=(windT-wind)*.08;windT*=.97;frame(clamp((n-t0)/9000));requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+let down=0,lx=0,moved=0;
+cv.addEventListener('pointerdown',e=>{down=1;moved=0;lx=e.clientX});
+addEventListener('pointermove',e=>{if(!down)return;const d=e.clientX-lx;lx=e.clientX;moved+=Math.abs(d);windT=Math.max(-1,Math.min(1,windT+d*.02))});
+addEventListener('pointerup',()=>{down=0;if(moved<6)t0=performance.now()});
+</script></body></html>
